@@ -1,14 +1,102 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Karel Excel Combiner</title>
+    <link rel="stylesheet" href="pico-master\css\pico.css">
+    <style>
+        .form {
+            margin: 10%;
+            padding: 1%;
+            border-style:solid;
+            border-color: #596B78;
+            border-radius: 1em;
+            box-shadow: 10px 10px 11px 0px rgba(0,0,0,0.1);
+        }
+    </style>
+    <script lang="javascript" src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
-    <h1>
-        Deneme
-    </h1>
+    <form action="" class = "form">
+        <div class="grid">
+            <label for="Aktarılacak Depo/İş Emri">
+                Aktarılacak Depo/İş Emri
+                <input class="textbox" type="text" name="" id="isemri" placeholder="Örn: D11111/SMD7-1">
+                Depo
+                <input class="textbox" type="text" name="" id="depo" placeholder="Örn: XRAY, SMD7-1" style="display: inline">
+            </label>
+            <label for="file">
+                ERP - Ürün Kalemi
+                <input type="file" id="excel1" name="excel1">
+                Sql - Depo
+                <input type="file" id="excel2" name="excel2">
+            </label>
+        </div>
+        <input type="button" id="download_button" value="Oluştur" style="color: white; background-color: #596B78;">
+    </form>
+    <script>
+        async function handleFileAsync(e) {
+            // Birinci dosyayı kaydet
+            const file1 = document.getElementById("excel1").files[0];
+            const data1 = await file1.arrayBuffer();
+            // İkinci dosyayı kaydet
+            const file2 = document.getElementById("excel2").files[0];
+            const data2 = await file2.arrayBuffer();
+            // Birinci dosyanın verisini oku
+            let myData1= XLSX.read(data1);
+            let file1_sheet_json = XLSX.utils.sheet_to_json(myData1.Sheets.Sayfa1);
+            // İkinci dosyanın verisini oku
+            let myData2= XLSX.read(data2);
+            let file2_sheet_json = XLSX.utils.sheet_to_json(myData2.Sheets.Sayfa1);
+            // İş Emrini Oku
+            const text1 = document.getElementById("isemri").value;
+            // Depoyu Oku
+            const text2 = document.getElementById("depo").value;
+            let newData = {}
+            let newSheet = []
+            console.log(file1_sheet_json)
+            console.log(file2_sheet_json)
+            for (i in file2_sheet_json) {
+                for (j in file2_sheet_json) {
+                    if (file2_sheet_json[i] == 0) {
+                        continue;
+                    }
+                    else if (i != j && file2_sheet_json[i].SEGMENT1 == file2_sheet_json[j].SEGMENT1) {
+                        file2_sheet_json[i].Sum += file2_sheet_json[j].Sum;
+                        file2_sheet_json[j].Sum = 0;
+                    }
+                }
+            }
+
+            for (i in file1_sheet_json) {
+                for (j in file2_sheet_json) {
+                    if (file1_sheet_json[i].Tip == "İtme") {
+                        if (file1_sheet_json[i].Bileşen == file2_sheet_json[j].SEGMENT1 && file2_sheet_json[j].Sum != 0) {
+                            newData.Kalem = file1_sheet_json[i].Bileşen;
+                            newData.Depo = text2;
+                            newData.Lot = file2_sheet_json[i].LOT_NUMBER;
+                            newData.Revision = file2_sheet_json[i].REVISION;
+                            if (file2_sheet_json[j].Sum >= file1_sheet_json[i].Açık) {
+                                newData.Açık = file1_sheet_json[i].Açık
+                            } else {
+                                newData.Açık = file2_sheet_json[j].Sum
+                            }
+                            newData.IE_DEPO = text1;
+                            newSheet.push(newData);
+                            newData = {};
+                        }
+                    }
+                }
+            }
+            let worksheet = XLSX.utils.json_to_sheet(newSheet);
+            let workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook,worksheet,"Sayfa 1");
+            XLSX.writeFile(workbook, "final.xlsx");
+            }
+        let download_button = document.getElementById("download_button");
+        download_button.addEventListener("click", handleFileAsync, false);
+    </script>
 </body>
 </html>
