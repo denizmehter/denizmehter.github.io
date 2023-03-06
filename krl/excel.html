@@ -18,37 +18,25 @@
     </style>
     <script lang="javascript" src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 </head>
-<body style="background-color: #E3FDFD;">
+<body>
     <!-- Kullanıcıdan dosya yüklemesini iste -->
-    <div class = "flex_box_general flexbox-container" style="border-style: solid;">
-        <table>
-            <tr>
-                <th style="padding-right: 20px;">
-                    <h3>İş Emri/Depo: </h3>
-                    <input class="textbox" type="text" name="" id="isemri">
-                </th>
-                <th>
-                    <h3>Ürün Kalemi: </h3>
-                    <input type="file" id="excel1">
-                </th>
-
-            </tr>
-            <tr>
-                <th>
-                    <h3>Depo: </h3>
-                    <input class="textbox" type="text" name="" id="depo">
-                </th>
-                <th>
-                    <h3>Depo Dosyası: </h3>
-                    <input type="file" id="excel2">
-                </th>
-                <th>
-                    
-                </th>
-            </tr>
-        </table>
-        <input type="button" id="download_button" value="Oluştur" style="width: 5em; height: 3em; align-self:center;">
-    </div>
+    <form action="" class = "form">
+        <div class="grid">
+            <label for="Aktarılacak Depo/İş Emri">
+                Aktarılacak Depo/İş Emri
+                <input class="textbox" type="text" name="" id="isemri" placeholder="Örn: D11111/SMD7-1">
+                Depo
+                <input class="textbox" type="text" name="" id="depo" placeholder="Örn: XRAY, SMD7-1" style="display: inline">
+            </label>
+            <label for="file">
+                ERP - Ürün Kalemi
+                <input type="file" id="excel1" name="excel1">
+                Sql - Depo
+                <input type="file" id="excel2" name="excel2">
+            </label>
+        </div>
+        <input type="button" id="download_button" value="Oluştur" style="color: white; background-color: #596B78;">
+    </form>
 
     <script>
         function letThereBeZero (e) {
