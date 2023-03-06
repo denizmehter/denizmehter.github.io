@@ -4,80 +4,119 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Karel Excel Combiner</title>
-    <link rel="stylesheet" href="pico.css">
+    <title>Document</title>
     <style>
-        .form {
-            margin: 10%;
-            padding: 1%;
-            border-style:solid;
-            border-color: #596B78;
+        h3 {
+            display: inline
+        }
+        .textbox {
+            display: inline;
+        }
+        .flex_box_general {
+            -webkit-box-shadow: 4px 4px 23px 0px rgba(0,0,0,0.35);
+            -moz-box-shadow: 4px 4px 23px 0px rgba(0,0,0,0.35);
+            box-shadow: 4px 4px 23px 0px rgba(0,0,0,0.35);
+            background-color: #71C9CE;
+            margin: 15em;
             border-radius: 1em;
-            box-shadow: 10px 10px 11px 0px rgba(0,0,0,0.1);
+            border-width: 0.3em;
+            border-color: #8f9cb1;
+            border-style: solid;
+        }
+        .flexbox-container {
+            background-color: #E3FDFD;
+            padding-top: 5%;
+            padding-bottom: 5%;
+            padding-left: 0cm;
+            padding-right: 0cm;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
     </style>
     <script lang="javascript" src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 </head>
-<body>
-    <form action="" class = "form">
-        <div class="grid">
-            <label for="Aktarılacak Depo/İş Emri">
-                Aktarılacak Depo/İş Emri
-                <input class="textbox" type="text" name="" id="isemri" placeholder="Örn: D11111/SMD7-1">
-                Depo
-                <input class="textbox" type="text" name="" id="depo" placeholder="Örn: XRAY, SMD7-1" style="display: inline">
-            </label>
-            <label for="file">
-                ERP - Ürün Kalemi
-                <input type="file" id="excel1" name="excel1">
-                Sql - Depo
-                <input type="file" id="excel2" name="excel2">
-            </label>
-        </div>
-        <input type="button" id="download_button" value="Oluştur" style="color: white; background-color: #596B78;">
-    </form>
+<body style="background-color: #E3FDFD;">
+    <!-- Kullanıcıdan dosya yüklemesini iste -->
+    <div class = "flex_box_general flexbox-container" style="border-style: solid;">
+        <table>
+            <tr>
+                <th style="padding-right: 20px;">
+                    <h3>İş Emri/Depo: </h3>
+                    <input class="textbox" type="text" name="" id="isemri">
+                </th>
+                <th>
+                    <h3>Ürün Kalemi: </h3>
+                    <input type="file" id="excel1">
+                </th>
+
+            </tr>
+            <tr>
+                <th>
+                    <h3>Depo: </h3>
+                    <input class="textbox" type="text" name="" id="depo">
+                </th>
+                <th>
+                    <h3>Depo Dosyası: </h3>
+                    <input type="file" id="excel2">
+                </th>
+                <th>
+                    
+                </th>
+            </tr>
+        </table>
+        <input type="button" id="download_button" value="Oluştur" style="width: 5em; height: 3em; align-self:center;">
+    </div>
+
     <script>
+        function letThereBeZero (e) {
+            for (i in e) {
+                for (j in e) {
+                    if (i != j && e[i].SEGMENT1 == e[j].SEGMENT1 && e[i].Sum != 0) {
+                        e[i].Sum += e[j].Sum;
+                        e[j].Sum = 0;
+                    }
+                }
+            }
+            return e;
+        }
+
         async function handleFileAsync(e) {
-            // Birinci dosyayı kaydet
+            // Birinci dosyayı kaydet - Depo veya Ürün Kalemi
             const file1 = document.getElementById("excel1").files[0];
             const data1 = await file1.arrayBuffer();
-            // İkinci dosyayı kaydet
+            // İkinci dosyayı kaydet - Düşülecek depo dosyası
             const file2 = document.getElementById("excel2").files[0];
             const data2 = await file2.arrayBuffer();
-            // Birinci dosyanın verisini oku
+            // Birinci dosyanın verisini oku ve JSON (array) olarak kaydet
             let myData1= XLSX.read(data1);
             let file1_sheet_json = XLSX.utils.sheet_to_json(myData1.Sheets.Sayfa1);
-            // İkinci dosyanın verisini oku
+            // İkinci dosyanın verisini oku ve JSON (array) olarak kaydet
             let myData2= XLSX.read(data2);
             let file2_sheet_json = XLSX.utils.sheet_to_json(myData2.Sheets.Sayfa1);
-            // İş Emrini Oku
+            // İş Emrini Oku - Hangi ürüne bakılacak
             const text1 = document.getElementById("isemri").value;
-            // Depoyu Oku
+            // Depoyu Oku - Hangi depodan düşülecek
             const text2 = document.getElementById("depo").value;
             let newData = {}
             let newSheet = []
             console.log(file1_sheet_json)
             console.log(file2_sheet_json)
+            file2_sheet_json = await letThereBeZero(file2_sheet_json)
+            console.log("Deniz")
             for (i in file2_sheet_json) {
-                for (j in file2_sheet_json) {
-                    if (file2_sheet_json[i] == 0) {
-                        continue;
-                    }
-                    else if (i != j && file2_sheet_json[i].SEGMENT1 == file2_sheet_json[j].SEGMENT1) {
-                        file2_sheet_json[i].Sum += file2_sheet_json[j].Sum;
-                        file2_sheet_json[j].Sum = 0;
-                    }
-                }
+                console.log(file2_sheet_json[i].LOT_NUMBER + "_" + file2_sheet_json[i].Sum)
             }
-
             for (i in file1_sheet_json) {
+                if (file1_sheet_json[i].Tip == "İtme") {
                 for (j in file2_sheet_json) {
-                    if (file1_sheet_json[i].Tip == "İtme") {
-                        if (file1_sheet_json[i].Bileşen == file2_sheet_json[j].SEGMENT1 && file2_sheet_json[j].Sum != 0) {
-                            newData.Kalem = file1_sheet_json[i].Bileşen;
+                        // console.log("ydm")
+                        if (file1_sheet_json[i].SEGMENT1 == file2_sheet_json[j].SEGMENT1 && file2_sheet_json[j].Sum > 0) {
+                            console.log("x" + file2_sheet_json[j].LOT_NUMBER + "_"+ file2_sheet_json[j].Sum);
+                            newData.Kalem = file1_sheet_json[i].SEGMENT1;
                             newData.Depo = text2;
-                            newData.Lot = file2_sheet_json[i].LOT_NUMBER;
-                            newData.Revision = file2_sheet_json[i].REVISION;
+                            newData.Lot = file2_sheet_json[j].LOT_NUMBER;
+                            newData.Revision = file2_sheet_json[j].REVISION;
                             if (file2_sheet_json[j].Sum >= file1_sheet_json[i].Açık) {
                                 newData.Açık = file1_sheet_json[i].Açık
                             } else {
@@ -86,6 +125,7 @@
                             newData.IE_DEPO = text1;
                             newSheet.push(newData);
                             newData = {};
+                            continue;
                         }
                     }
                 }
